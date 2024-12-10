@@ -21,9 +21,22 @@ app.post("/hdfcWebhook", async (req, res) => {
 
     try {
       console.log("Starting transaction...");
+      const existingTransaction = await db.onRampTransaction.findFirst({
+          where: {
+          token: paymentInformation.token,
+          status: "Processing"
+          }
+      });
+
+      if (!existingTransaction) {
+          return res.status(400).json({
+          message: "Invalid or already processed token"
+          });
+      }
+
 
         const result = await db.$transaction([
-            db.balance.update({
+            db.balance.update({ 
                 where: {
                     userId: Number(paymentInformation.userId)
                 },
